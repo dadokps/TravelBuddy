@@ -1,54 +1,53 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Button } from '../../components/ui/Button';
+import { 
+  Box,
+  Text,
+  VStack,
+  Center,
+  Heading,
+  Button,
+  useTheme
+} from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '../../navigation/types';
 
 export const PasswordSuccessScreen = () => {
   const navigation = useNavigation<StackNavigationProp<'PasswordSuccess'>>();
+  const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.icon}>🎉</Text>
-        <Text style={styles.title}>Password Changed!</Text>
-        <Text style={styles.subtitle}>Your password has been updated successfully</Text>
-      </View>
-      
-      <Button
-        title="Back to Login"
-        onPress={() => navigation.navigate('Login')}
-      />
-    </View>
+    <Center flex={1} px={6} bg="white">
+      <Box w="100%" maxW="400px">
+        <VStack space={8} alignItems="center">
+          <Box bg="primary.100" p={6} rounded="full">
+            <Text fontSize="5xl" color="primary.600">🎉</Text>
+          </Box>
+          
+          <VStack space={2} alignItems="center">
+            <Heading size="xl" color="primary.600" textAlign="center">
+              Password Changed!
+            </Heading>
+            <Text 
+              fontSize="md" 
+              color="gray.500" 
+              textAlign="center"
+              px={4}
+            >
+              Your password has been updated successfully
+            </Text>
+          </VStack>
+
+          <Button
+            w="100%"
+            size="lg"
+            colorScheme="primary"
+            onPress={() => navigation.navigate('Login')}
+            mt={8}
+          >
+            Back to Login
+          </Button>
+        </VStack>
+      </Box>
+    </Center>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingBottom: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  icon: {
-    fontSize: 60,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#666',
-    paddingHorizontal: 30,
-  },
-});

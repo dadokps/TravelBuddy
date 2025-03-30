@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
+import { 
+  Box,
+  Text,
+  VStack,
+  Heading,
+  Divider,
+  Avatar,
+  useToast,
+  Button
+} from 'native-base';
 import { TextInput } from '../../components/ui/TextInput';
-import { Button } from '../../components/ui/Button';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '../../navigation/types';
 import { supabase } from '../../api/supabase';
@@ -19,9 +28,8 @@ export const SignUpScreen = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<StackNavigationProp<'SignUp'>>();
+  const toast = useToast();
 
   const uploadAvatar = async () => {
     if (!avatarUri) return null;
@@ -50,10 +58,15 @@ export const SignUpScreen = () => {
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      toast.show({
+        description: "Passwords don't match",
+        placement: 'top',
+        bg: 'error.500'
+      });
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
     setError('');
 
     try {
@@ -86,113 +99,118 @@ export const SignUpScreen = () => {
       navigation.navigate('VerifyEmail');
 
     } catch (err) {
-      //console.error(err);
       setError(err instanceof Error ? err.message : 'Signup failed 3');
+      toast.show({
+        description: err instanceof Error ? err.message : 'Signup failed',
+        placement: 'top',
+        bg: 'error.500'
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <Box flex={1} p={5} bg="white">
+        <VStack space={4}>
+          <Heading size="xl" textAlign="center" mb={4} color="primary.600">
+            Create Account
+          </Heading>
+          
+          {error && (
+            <Text color="red.500" textAlign="center" mb={3}>
+              {error}
+            </Text>
+          )}
 
-      <Text style={styles.sectionTitle}>Account Information</Text>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      <TextInput
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
+          <Box alignItems="center" mb={4}>
+            {avatarUri ? (
+              <Avatar size="xl" source={{ uri: avatarUri }} mb={2} />
+            ) : (
+              <ImageUpload 
+                onImageSelected={setAvatarUri} 
+                initialUri={avatarUri ?? undefined}
+              />
+            )}
+          </Box>
 
-      <Text style={styles.sectionTitle}>Profile Information</Text>
-      <TextInput
-        placeholder="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      
-      <TextInput
-        placeholder="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      
-      <TextInput
-        placeholder="Age"
-        value={age}
-        onChangeText={setAge}
-        keyboardType="numeric"
-      />
-      
-      <TextInput
-        placeholder="Bio"
-        value={bio}
-        onChangeText={setBio}
-        multiline
-      />
+          <Divider my={2} />
 
-      <ImageUpload 
-        onImageSelected={setAvatarUri} 
-        initialUri={avatarUri ?? undefined}
-      />
+          <Text fontSize="md" fontWeight="medium" color="gray.700">
+            Account Information
+          </Text>
+          
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          
+          <TextInput
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
 
-      {/* Add other form fields similarly */}
-      
-      <Button
-        title="Sign Up"
-        onPress={handleSignUp}
-        loading={loading}
-        disabled={loading}
-      />
+          <Divider my={2} />
+
+          <Text fontSize="md" fontWeight="medium" color="gray.700">
+            Profile Information
+          </Text>
+          
+          <TextInput
+            placeholder="First Name"
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+          
+          <TextInput
+            placeholder="Last Name"
+            value={lastName}
+            onChangeText={setLastName}
+          />
+          
+          <TextInput
+            placeholder="Age"
+            value={age}
+            onChangeText={setAge}
+            keyboardType="numeric"
+          />
+          
+          <TextInput
+            placeholder="Bio"
+            value={bio}
+            onChangeText={setBio}
+            multiline
+          />
+
+          <Box mt={4}>
+            <Button
+                colorScheme="primary"
+                size="lg"
+                borderRadius="lg"
+                mt={4}
+                py={3}
+                isLoading={isLoading}
+                onPress={handleSignUp}
+                _text={{ fontWeight: 'bold' }}
+              >
+                Sign Up
+              </Button>
+          </Box>
+        </VStack>
+      </Box>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 15,
-    marginBottom: 5,
-    color: '#333',
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  link: {
-    color: 'blue',
-    marginTop: 15,
-    textAlign: 'center',
-  },
-});

@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { 
+  Box,
+  Text,
+  VStack,
+  Heading,
+  useToast,
+  Center,
+  Link,
+  Divider,
+  Button
+} from 'native-base';
 import { TextInput } from '../../components/ui/TextInput';
-import { Button } from '../../components/ui/Button';
 import { supabase } from '../../api/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '../../navigation/types';
@@ -21,30 +30,34 @@ type CreateNewPasswordProps = {
 export const CreateNewPasswordScreen = ({ route }: CreateNewPasswordProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const navigation = useNavigation<StackNavigationProp<'CreateNewPassword'>>();
   const { email, token } = route.params;
+  const toast = useToast();
 
   const handleSubmit = async () => {
-    // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      toast.show({
+        description: "Passwords don't match",
+        placement: 'top',
+        bg: 'error.500'
+      });
       return;
     }
 
-    // Validate password length
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      toast.show({
+        description: "Password must be at least 8 characters",
+        placement: 'top',
+        bg: 'error.500'
+      });
       return;
     }
 
     setIsLoading(true);
-    setError('');
 
     try {
-      // First verify the token is still valid
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token,
@@ -53,105 +66,80 @@ export const CreateNewPasswordScreen = ({ route }: CreateNewPasswordProps) => {
 
       if (verifyError) throw verifyError;
 
-      // If token is valid, update the password
       const { error: updateError } = await supabase.auth.updateUser({
         password,
       });
 
       if (updateError) throw updateError;
 
-      // Password updated successfully
       navigation.navigate('PasswordSuccess');
     } catch (err) {
-      setError(
-        err instanceof Error 
+      toast.show({
+        description: err instanceof Error 
           ? err.message 
-          : 'Failed to update password. Please try again.'
-      );
+          : 'Failed to update password. Please try again.',
+        placement: 'top',
+        bg: 'error.500'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create New Password</Text>
-      <Text style={styles.subtitle}>For {email}</Text>
-      
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : null}
-      
-      <TextInput
-        placeholder="New Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={styles.input}
-      />
-      
-      <TextInput
-        placeholder="Confirm New Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={styles.input}
-      />
-      
-      <Button
-        title="Update Password"
-        onPress={handleSubmit}
-        loading={isLoading}
-        disabled={!password || !confirmPassword}
-        style={styles.button}
-      />
-    </View>
+    <Center flex={1} px={6} bg="white">
+      <Box w="100%" maxW="400px">
+        <VStack space={4}>
+          <Heading size="xl" textAlign="center" color="primary.600">
+            Create New Password
+          </Heading>
+          
+          <Text textAlign="center" color="gray.500" mb={6}>
+            For {email}
+          </Text>
+
+          <TextInput
+            placeholder="New Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
+          <TextInput
+            placeholder="Confirm New Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
+          <Button
+              colorScheme="primary"
+              size="lg"
+              borderRadius="lg"
+              mt={4}
+              py={3}
+              isLoading={isLoading}
+              onPress={handleSubmit}
+              _text={{ fontWeight: 'bold' }}
+              disabled={!password || !confirmPassword}
+            >
+              Update Password
+            </Button>
+
+          <Divider my={4} />
+
+          <Link 
+            onPress={() => navigation.navigate('Login')} 
+            _text={{ color: 'primary.500', textAlign: 'center' }}
+          >
+            Back to Login
+          </Link>
+        </VStack>
+      </Box>
+    </Center>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 32,
-    textAlign: 'center',
-    color: '#666',
-  },
-  error: {
-    color: '#ff5252',
-    marginBottom: 16,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-  },
-  button: {
-    marginTop: 8,
-    backgroundColor: '#6200ee',
-    borderRadius: 8,
-    padding: 16,
-  },
-});

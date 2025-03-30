@@ -1,87 +1,92 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { TextInput }  from '../../components/ui/TextInput';
-import { Button } from '../../components/ui/Button';
+import { 
+  Box,
+  Text,
+  VStack,
+  Heading,
+  useToast,
+  Center,
+  Link,
+  Button
+} from 'native-base';
+import { TextInput } from '../../components/ui/TextInput';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '../../navigation/types';
 
 export const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   const { resetPassword } = useAuth();
   const navigation = useNavigation<StackNavigationProp<'ForgotPassword'>>();
+  const toast = useToast();
 
   const handleResetPassword = async () => {
     setIsLoading(true);
-    setError('');
     try {
       await resetPassword(email);
-      setSuccess(true);
+      toast.show({
+        description: "Reset link sent to your email",
+        placement: 'top',
+        bg: 'success.500'
+      });
       navigation.navigate('ForgotPasswordOTP', { email });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      toast.show({
+        description: err instanceof Error 
+          ? err.message 
+          : 'An unexpected error occurred',
+        placement: 'top',
+        bg: 'error.500'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
-      
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {success ? <Text style={styles.success}>Reset link sent to your email</Text> : null}
-      
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      
-      <Button
-        title="Send Reset Link"
-        onPress={handleResetPassword}
-        loading={isLoading}
-      />
-      
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Back to Login</Text>
-      </TouchableOpacity>
-    </View>
+    <Center flex={1} px={6} bg="white">
+      <Box w="100%" maxW="400px">
+        <VStack space={4}>
+          <Heading size="xl" textAlign="center" color="primary.600">
+            Reset Password
+          </Heading>
+          
+          <Text textAlign="center" color="gray.500" mb={6}>
+            Enter your email to receive a password reset link
+          </Text>
+
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          
+          <Button
+            colorScheme="primary"
+            size="lg"
+            borderRadius="lg"
+            mt={4}
+            py={3}
+            isLoading={isLoading}
+            onPress={handleResetPassword}
+            _text={{ fontWeight: 'bold' }}
+            disabled={!email}
+          >
+            Send Reset Link
+          </Button>
+
+          <Link 
+            onPress={() => navigation.navigate('Login')} 
+            _text={{ color: 'primary.500', textAlign: 'center', mt: 4 }}
+          >
+            Back to Login
+          </Link>
+        </VStack>
+      </Box>
+    </Center>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  success: {
-    color: 'green',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  link: {
-    color: 'blue',
-    marginTop: 15,
-    textAlign: 'center',
-  },
-});

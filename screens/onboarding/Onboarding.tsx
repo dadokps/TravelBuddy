@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { Button } from '../../components/ui/Button';
+import { ScrollView } from 'react-native';
+import { Box, Image, Text, Button, HStack, Center, VStack, useTheme } from 'native-base';
 import { StackNavigationProp } from '../../navigation/types';
 import { useNavigation } from '@react-navigation/native';
-import { colors, spacing } from '../../contants/theme';
 
-// Define your onboarding slides data
 const slides = [
   {
     id: '1',
@@ -30,6 +28,7 @@ const slides = [
 export const OnboardingScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigation = useNavigation<StackNavigationProp<'Onboarding'>>();
+  const { colors } = useTheme();
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -44,11 +43,19 @@ export const OnboardingScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <Box flex={1} bg="white" safeArea>
       {/* Skip button */}
-      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
+      <Button 
+        variant="ghost" 
+        position="absolute" 
+        top={6} 
+        right={4} 
+        zIndex={1}
+        onPress={handleSkip}
+        _text={{ color: 'primary.500', fontWeight: 'medium' }}
+      >
+        Skip
+      </Button>
 
       {/* Scrollable slides */}
       <ScrollView
@@ -61,98 +68,51 @@ export const OnboardingScreen = () => {
         }}
       >
         {slides.map((slide) => (
-          <View key={slide.id} style={styles.slide}>
-            <Image source={slide.image} style={styles.image} />
-            <Text style={styles.title}>{slide.title}</Text>
-            <Text style={styles.description}>{slide.description}</Text>
-          </View>
+          <Box key={slide.id} width="100%" flex={1} alignItems="center" justifyContent="center" p={8}>
+            <Image 
+              source={slide.image} 
+              alt={slide.title}
+              size={300}
+              resizeMode="contain"
+              mb={12}
+            />
+            <Text fontSize="2xl" fontWeight="bold" mb={4} textAlign="center">
+              {slide.title}
+            </Text>
+            <Text fontSize="md" color="gray.600" textAlign="center" px={8}>
+              {slide.description}
+            </Text>
+          </Box>
         ))}
       </ScrollView>
 
       {/* Pagination indicators */}
-      <View style={styles.pagination}>
-        {slides.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              currentIndex === index && styles.activeDot,
-            ]}
-          />
-        ))}
-      </View>
+      <Center mb={12}>
+        <HStack space={2}>
+          {slides.map((_, index) => (
+            <Box 
+              key={index}
+              width={currentIndex === index ? 4 : 2}
+              height={2}
+              borderRadius="full"
+              bg={currentIndex === index ? 'primary.500' : 'gray.300'}
+            />
+          ))}
+        </HStack>
+      </Center>
 
       {/* Next/Get Started button */}
-      <View style={styles.buttonContainer}>
+      <Box px={6} mb={10}>
         <Button
-          title={currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+          colorScheme="primary"
+          borderRadius="lg"
+          py={3}
           onPress={handleNext}
-        />
-      </View>
-    </View>
+          _text={{ fontWeight: 'bold', fontSize: 'md' }}
+        >
+          {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+        </Button>
+      </Box>
+    </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  skipButton: {
-    position: 'absolute',
-    top: spacing.large,
-    right: spacing.large,
-    zIndex: 1,
-  },
-  skipText: {
-    color: colors.primary,
-    fontSize: 16,
-  },
-  slide: {
-    width: '100%', // Will be adjusted by ScrollView
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.large,
-  },
-  image: {
-    width: 300,
-    height: 300,
-    resizeMode: 'contain',
-    marginBottom: spacing.xlarge,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.black,
-    textAlign: 'center',
-    marginBottom: spacing.medium,
-  },
-  description: {
-    fontSize: 16,
-    color: colors.darkGray,
-    textAlign: 'center',
-    paddingHorizontal: spacing.xlarge,
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xlarge,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.lightGray,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: colors.primary,
-    width: 16,
-  },
-  buttonContainer: {
-    paddingHorizontal: spacing.large,
-    marginBottom: spacing.xlarge,
-  },
-});
