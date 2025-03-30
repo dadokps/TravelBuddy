@@ -35,3 +35,5 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .qodo
+.vs/VSWorkspaceState.json
+.vs/Frontend/v17/DocumentLayout.json
