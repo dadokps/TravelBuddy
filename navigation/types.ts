@@ -36,3 +36,30 @@ type ImageUploadType = {
   type: string;
 };
 
+// screens/main/types.ts
+export type GeoCoordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+export type LocationResult = {
+  id: string;
+  name: string;
+  address: string;
+  country?: string;
+  coordinates: GeoCoordinates;
+  additionalDetails?: {
+    city?: string;
+    postalCode?: string;
+    neighborhood?: string;
+  };
+};
+
+export type TripCreationFlowState = 
+  | 'initial' 
+  | 'searching' 
+  | 'confirming' 
+  | 'date-selection' 
+  | 'passenger-selection';
+
+  
